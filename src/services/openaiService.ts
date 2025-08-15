@@ -2,7 +2,7 @@ import config from '../config/config';
 
 import OpenAI from 'openai';
 
-const MODEL = 'gpt-5o-mini';
+const MODEL = 'gpt-5-mini';
 
 export class OpenAIService {
   private openaiClient: OpenAI;
@@ -40,7 +40,7 @@ export class OpenAIService {
             ],
           },
         ],
-        max_tokens: 1000,
+        max_completion_tokens: 1000,
       });
 
       const analysis =
@@ -93,8 +93,7 @@ export class OpenAIService {
       const response = await this.openaiClient.chat.completions.create({
         model: MODEL,
         messages,
-        max_tokens: 1500,
-        temperature: 0.7,
+        max_completion_tokens: 1500,
       });
 
       const analysis =
@@ -241,8 +240,7 @@ export class OpenAIService {
             content: text,
           },
         ],
-        max_tokens: 1000,
-        temperature: 0.7,
+        max_completion_tokens: 1000,
       });
 
       const analysis =
@@ -283,8 +281,7 @@ export class OpenAIService {
             content: `นักเรียนมีปัญหานี้: "${problemText}"\n\nช่วยแก้ปัญหานี้ให้กับนักเรียนด้วยจ้า`,
           },
         ],
-        max_tokens: 1500,
-        temperature: 0.7,
+        max_completion_tokens: 1500,
       });
 
       const solution =
@@ -324,8 +321,7 @@ export class OpenAIService {
             content: `นักเรียนมีคำถามเกี่ยวกับ ${subject}: "${question}"\n\nช่วยอธิบายให้เข้าใจง่ายๆ จ้า`,
           },
         ],
-        max_tokens: 1500,
-        temperature: 0.7,
+        max_completion_tokens: 1500,
       });
 
       const help =
@@ -388,8 +384,7 @@ export class OpenAIService {
             content: userPrompt,
           },
         ],
-        max_tokens: 1200,
-        temperature: 0.7,
+        max_completion_tokens: 1200,
       });
 
       const analysis =
