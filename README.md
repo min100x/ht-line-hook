@@ -85,6 +85,7 @@ Install the recommended VS Code extensions for the best experience:
 - **Comprehensive Logging**: Detailed event processing with console output
 - **Type Safety**: Full TypeScript interfaces for all Line event types
 - **Error Handling**: Robust error handling with proper HTTP status codes
+- **🤖 AI-Powered Image Analysis**: **Automatic OpenAI integration for image analysis and user replies**
 
 ### Supported Line Event Types
 
@@ -98,6 +99,111 @@ Install the recommended VS Code extensions for the best experience:
 | `postback`     | Postback action from rich menu                              | ✅ Implemented              |
 | `memberJoined` | New member joined group                                     | 🔄 Ready for implementation |
 | `memberLeft`   | Member left group                                           | 🔄 Ready for implementation |
+
+### 🤖 **AI-Powered Image Analysis with OpenAI**
+
+The Line webhook now includes **automatic AI-powered image analysis** using OpenAI's GPT-4 Vision model. When users send images, the system automatically:
+
+1. **Retrieves the image** from Line's content API (via `LineClient`)
+2. **Converts to base64** for OpenAI processing
+3. **Analyzes with GPT-4 Vision** (via `OpenAIService`)
+4. **Automatically replies** to users with the analysis (via `LineAIService`)
+
+#### **Service Usage Examples**
+
+```typescript
+// Using the combined service (recommended for webhooks)
+const lineAIService = new LineAIService();
+
+// Complete workflow: analyze + reply
+await lineAIService.analyzeAndReplyToImage(
+  messageId,
+  userId,
+  'Please describe what you see in this image in detail.'
+);
+
+// Using individual services for custom workflows
+const lineClient = lineAIService.getLineClient();
+const openaiService = lineAIService.getOpenAIService();
+
+// Get image content
+const contentInfo = await lineClient.getContentWithMimeType(
+  messageId,
+  'image.jpg'
+);
+
+// Analyze with OpenAI
+const analysis = await openaiService.analyzeImage(
+  contentInfo.dataURL,
+  'Custom prompt here'
+);
+
+// Send reply
+await lineClient.sendMessage(userId, analysis);
+```
+
+#### **Available Analysis Methods**
+
+```typescript
+// Basic image analysis
+const analysis = await lineClient.analyzeImageWithOpenAI(
+  messageId,
+  'Please describe what you see in this image in detail.'
+);
+
+// Custom analysis with specific instructions
+const customAnalysis = await lineClient.analyzeImageWithCustomInstructions(
+  messageId,
+  'Analyze this image from a technical perspective.',
+  'You are a professional photographer and image analyst.'
+);
+
+// Automatic analysis and user reply
+await lineClient.analyzeAndReplyToImage(
+  messageId,
+  userId,
+  'Please analyze this image and provide a helpful description.'
+);
+```
+
+#### **Use Case Examples**
+
+The system supports various specialized analysis types:
+
+- **🎯 Accessibility**: Detailed descriptions for visually impaired users
+- **📚 Education**: Educational insights and teaching opportunities
+- **💼 Business**: Business insights and opportunity analysis
+- **🛡️ Safety**: Hazard identification and safety concerns
+- **🔍 Technical**: Composition, lighting, and technical analysis
+- **🎨 Creative**: Artistic interpretation and emotional analysis
+
+#### **Content Retrieval Methods**
+
+```typescript
+// Get content as base64 string
+const base64 = await lineClient.getContentBase64(messageId);
+
+// Get content as Node.js Buffer
+const buffer = await lineClient.getContentBuffer(messageId);
+
+// Get content as data URL for web display
+const dataURL = await lineClient.getContentAsDataURL(messageId, 'image/jpeg');
+
+// Get comprehensive content information
+const contentInfo = await lineClient.getContentWithMimeType(
+  messageId,
+  'image.jpg'
+);
+// Returns: { base64, buffer, dataURL, mimeType, size }
+```
+
+#### **Supported File Types**
+
+- **Images**: JPG, PNG, GIF, WebP
+- **Videos**: MP4, MOV, AVI
+- **Audio**: MP3, WAV
+- **Documents**: PDF, TXT
+- **Binary**: Any other file type
 
 ## Prerequisites
 
@@ -157,10 +263,21 @@ The server will start on port 3000 (or the port specified in your environment va
 Create a `.env` file in the root directory:
 
 ```env
+# Server Configuration
 PORT=3000
 NODE_ENV=development
+
+# CORS Configuration
 CORS_ORIGIN=*
+
+# Line Messaging API Configuration
+MESSAGING_API_CHANNEL_ACCESS_TOKEN=your_line_channel_access_token_here
+
+# 🤖 OpenAI Configuration (Required for AI image analysis)
+OPENAI_API_KEY=your_openai_api_key_here
 ```
+
+**Important**: The `OPENAI_API_KEY` is required for the AI-powered image analysis functionality. You can get your API key from [OpenAI's platform](https://platform.openai.com/api-keys).
 
 ## Project Structure
 
@@ -170,13 +287,18 @@ ht-line-hooks/
 │   ├── app.ts             # Express app configuration
 │   ├── server.ts          # Server entry point
 │   ├── client/            # Line client implementation
-│   │   └── lineClient.ts  # Line Messaging API client
+│   │   ├── lineClient.ts  # Line Messaging API client (Line-only operations)
+│   │   ├── example-usage.ts # Basic Line client usage examples
+│   │   └── image-analysis-example.ts # 🤖 AI image analysis examples
+│   ├── services/          # 🤖 Service layer for business logic
+│   │   ├── openaiService.ts # OpenAI API integration and image analysis
+│   │   └── lineAIService.ts # Combined Line + OpenAI service for AI workflows
 │   ├── config/
 │   │   └── config.ts      # Configuration management
 │   └── routes/
 │       ├── health.ts      # Health check routes
 │       ├── api.ts         # Main API routes
-│       └── line-webhook.ts # Line webhook routes
+│       └── line-webhook.ts # Line webhook routes with AI analysis
 ├── dist/                   # Compiled JavaScript (generated)
 ├── .vscode/               # VS Code settings and extensions
 ├── tsconfig.json          # TypeScript configuration
@@ -184,6 +306,73 @@ ht-line-hooks/
 ├── .prettierignore        # Prettier ignore patterns
 ├── package.json           # Dependencies and scripts
 └── README.md              # Project documentation
+```
+
+### 🏗️ **Service Architecture**
+
+The project now follows a **clean separation of concerns** with dedicated services:
+
+#### **`LineClient`** - Line API Operations Only
+
+- **Content retrieval** from Line messaging API
+- **Message sending** to Line users
+- **File handling** (base64, buffer, data URL conversion)
+- **MIME type detection** and validation
+
+#### **`OpenAIService`** - AI Operations Only
+
+- **Image analysis** with GPT-4 Vision
+- **Custom prompts** and system instructions
+- **Use case analysis** (accessibility, education, business, safety)
+- **Batch processing** for multiple images
+
+#### **`LineAIService`** - Combined Workflows
+
+- **Bridges Line and OpenAI** functionality
+- **Complete AI workflows** (analyze + reply)
+- **Error handling** and user communication
+- **Orchestrates** the entire image analysis process
+
+### 🤖 **AI-Powered Image Analysis with OpenAI**
+
+The Line webhook now includes **automatic AI-powered image analysis** using OpenAI's GPT-4 Vision model. When users send images, the system automatically:
+
+1. **Retrieves the image** from Line's content API (via `LineClient`)
+2. **Converts to base64** for OpenAI processing
+3. **Analyzes with GPT-4 Vision** (via `OpenAIService`)
+4. **Automatically replies** to users with the analysis (via `LineAIService`)
+
+#### **Service Usage Examples**
+
+```typescript
+// Using the combined service (recommended for webhooks)
+const lineAIService = new LineAIService();
+
+// Complete workflow: analyze + reply
+await lineAIService.analyzeAndReplyToImage(
+  messageId,
+  userId,
+  'Please describe what you see in this image in detail.'
+);
+
+// Using individual services for custom workflows
+const lineClient = lineAIService.getLineClient();
+const openaiService = lineAIService.getOpenAIService();
+
+// Get image content
+const contentInfo = await lineClient.getContentWithMimeType(
+  messageId,
+  'image.jpg'
+);
+
+// Analyze with OpenAI
+const analysis = await openaiService.analyzeImage(
+  contentInfo.dataURL,
+  'Custom prompt here'
+);
+
+// Send reply
+await lineClient.sendMessage(userId, analysis);
 ```
 
 ## Available Scripts
@@ -214,6 +403,7 @@ ht-line-hooks/
 1. **Configure Line Bot**: Set your webhook URL to `https://yourdomain.com/line-webhook`
 2. **Verify Endpoint**: Test with `GET /line-webhook/health`
 3. **Send Messages**: Line will POST events to `POST /line-webhook`
+4. **🤖 Enable AI Analysis**: Ensure `OPENAI_API_KEY` is set in your environment
 
 ### Sample Webhook Payload
 
@@ -269,6 +459,10 @@ function handleMessageEvent(event: LineEvent): void {
       case 'text':
         // Add your text message processing logic here
         console.log(`Processing text: ${(message as LineTextMessage).text}`);
+        break;
+      case 'image':
+        // 🤖 AI analysis happens automatically here!
+        // You can also add custom logic
         break;
       // ... other message types
     }

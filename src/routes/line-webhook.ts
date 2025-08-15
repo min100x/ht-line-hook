@@ -1,6 +1,4 @@
-import * as line from '@line/bot-sdk';
-
-import config from '../config/config';
+import LineAIService from '../services/lineAIService';
 
 import { Request, Response, Router } from 'express';
 
@@ -154,10 +152,8 @@ interface WebhookResponse {
   eventTypes: string[];
 }
 
-// create LINE SDK client
-const client = new line.messagingApi.MessagingApiClient({
-  channelAccessToken: config.lineMessagingApi.channelAccessToken,
-});
+// create LINE AI service
+const lineAIService = new LineAIService();
 
 // Line webhook endpoint
 router.post('/', (req: Request, res: Response) => {
@@ -236,7 +232,7 @@ router.post('/', (req: Request, res: Response) => {
 });
 
 // Event handlers
-function handleMessageEvent(event: LineEvent): void {
+async function handleMessageEvent(event: LineEvent): Promise<void> {
   if (event.message && event.type === 'message') {
     const message = event.message;
     console.log(`💬 Message received:`, {
@@ -249,31 +245,101 @@ function handleMessageEvent(event: LineEvent): void {
     // Handle different message types
     switch (message.type) {
       case 'text':
-        console.log(`📝 Text message: ${(message as LineTextMessage).text}`);
+        const textMessage = (message as LineTextMessage).text;
+        console.log(`📝 Text message: ${textMessage}`);
         // Add your text message processing logic here
 
         if (event.source.userId) {
-          console.log('push message to user', event.source.userId);
-          client.pushMessage({
-            to: event.source.userId,
-            messages: [
-              {
-                type: 'text',
-                text: 'สวัสดีจ้า นักเรียน !',
-              },
-            ],
-          });
+          // const completion = await openaiClient.chat.completions.create({
+          //   model: 'gpt-4o-mini',
+          //   messages: [
+          //     { role: 'developer', content: 'You are a helpful assistant.' },
+          //     {
+          //       role: 'user',
+          //       content: (message as LineTextMessage).text,
+          //     },
+          //   ],
+          // });
+          // console.log(completion.choices[0]?.message.content);
+          // client.pushMessage({
+          //   to: event.source.userId,
+          //   messages: [
+          //     {
+          //       type: 'text',
+          //       text: 'สวัสดีจ้า นักเรียน !',
+          //     },
+          //   ],
+          // });
         }
         break;
       case 'image':
-        // Add your image processing logic here
-        // contentProvider.type
-        // contentProvider.originalContentUrl
+        console.log(`🖼️ Image message received:`, {
+          id: message.id,
+          contentProvider: message.contentProvider,
+        });
+
         if (message.contentProvider?.type === 'line') {
           console.log(`🖼️ Image message received from Line`);
-          // todo: get content api
+          try {
+            // Get content with automatic MIME type detection
+            const lineClient = lineAIService.getLineClient();
+            const contentInfo = await lineClient.getContentWithMimeType(
+              message.id,
+              'image.jpg'
+            );
+
+            console.log('✅ Content retrieved successfully:');
+            console.log('  - Base64 length:', contentInfo.base64.length);
+            console.log('  - Buffer size:', contentInfo.size, 'bytes');
+            console.log('  - MIME type:', contentInfo.mimeType);
+            console.log('  - Data URL length:', contentInfo.dataURL.length);
+
+            // Automatically analyze image with OpenAI and reply to user
+            if (event.source.userId) {
+              console.log('🤖 Starting OpenAI image analysis...');
+
+              // Analyze image and send reply to user
+              await lineAIService.analyzeAndReplyToImage(
+                message.id,
+                event.source.userId,
+                'ครูเพ็ญศรวยช่วยแก้ปัญหานี้ให้กับนักเรียนด้วยจ้า'
+              );
+            }
+
+            // You can now use the content in different formats:
+            // - contentInfo.base64: Raw base64 string
+            // - contentInfo.buffer: Node.js Buffer for file operations
+            // - contentInfo.dataURL: Data URL for web display
+            // - contentInfo.mimeType: Detected MIME type
+            // - contentInfo.size: File size in bytes
+
+            // Example: Save to file (optional)
+            // const fs = require('fs');
+            // const fileName = `./uploads/image_${message.id}.${contentInfo.mimeType.split('/')[1]}`;
+            // fs.writeFileSync(fileName, contentInfo.buffer);
+            // console.log(`💾 File saved: ${fileName}`);
+          } catch (error) {
+            console.error('❌ Error getting image content:', error);
+
+            // Send error message to user if possible
+            if (event.source.userId) {
+              try {
+                const lineClient = lineAIService.getLineClient();
+                await lineClient.sendErrorMessage(
+                  event.source.userId,
+                  'Sorry, I encountered an error while processing your image. Please try again.'
+                );
+              } catch (replyError) {
+                console.error(
+                  'Error sending error message to user:',
+                  replyError
+                );
+              }
+            }
+          }
         } else if (message.contentProvider?.type === 'external') {
           console.log(`🖼️ Image message received from external`);
+          // Handle external content provider
         }
         break;
       case 'video':

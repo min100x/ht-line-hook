@@ -10,6 +10,9 @@ export interface Config {
   lineMessagingApi: {
     channelAccessToken: string;
   };
+  openai: {
+    apiKey: string;
+  };
 }
 
 export const config: Config = {
@@ -18,6 +21,9 @@ export const config: Config = {
   corsOrigin: process.env['CORS_ORIGIN'] || '*',
   lineMessagingApi: {
     channelAccessToken: process.env['MESSAGING_API_CHANNEL_ACCESS_TOKEN'] || '',
+  },
+  openai: {
+    apiKey: process.env['OPENAI_API_KEY'] || '',
   },
 };
 
