@@ -102,11 +102,11 @@ Install the recommended VS Code extensions for the best experience:
 
 ### 🤖 **AI-Powered Image Analysis with OpenAI**
 
-The Line webhook now includes **automatic AI-powered image analysis** using OpenAI's GPT-4 Vision model. When users send images, the system automatically:
+The Line webhook now includes **automatic AI-powered image analysis** using OpenAI's **GPT-5o-mini** model. When users send images, the system automatically:
 
 1. **Retrieves the image** from Line's content API (via `LineClient`)
 2. **Converts to base64** for OpenAI processing
-3. **Analyzes with GPT-4 Vision** (via `OpenAIService`)
+3. **Analyzes with GPT-5o-mini** (via `OpenAIService`)
 4. **Automatically replies** to users with the analysis (via `LineAIService`)
 
 #### **Service Usage Examples**
@@ -344,16 +344,16 @@ The project now follows a **clean separation of concerns** with dedicated servic
 
 ### 🤖 **AI-Powered Image Analysis with OpenAI**
 
-The Line webhook now includes **automatic AI-powered image analysis** using OpenAI's GPT-4 Vision model. When users send images, the system automatically:
+The Line webhook now includes **automatic AI-powered image analysis** using OpenAI's **GPT-5o-mini** model. When users send images, the system automatically:
 
 1. **Retrieves the image** from Line's content API (via `LineClient`)
 2. **Converts to base64** for OpenAI processing
-3. **Analyzes with GPT-4 Vision** (via `OpenAIService`)
+3. **Analyzes with GPT-5o-mini** (via `OpenAIService`)
 4. **Automatically replies** to users with the analysis (via `LineAIService`)
 
 ### 📝 **AI-Powered Text Analysis and Problem Solving**
 
-The system now also provides **comprehensive text analysis and problem-solving capabilities**:
+The system now also provides **comprehensive text analysis and problem-solving capabilities** using OpenAI's **GPT-5o-mini** model:
 
 #### **Text Analysis Features:**
 

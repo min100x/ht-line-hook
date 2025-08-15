@@ -2,6 +2,8 @@ import config from '../config/config';
 
 import OpenAI from 'openai';
 
+const MODEL = 'gpt-5o-mini';
+
 export class OpenAIService {
   private openaiClient: OpenAI;
 
@@ -20,7 +22,7 @@ export class OpenAIService {
       console.log('🤖 Starting OpenAI image analysis...');
 
       const response = await this.openaiClient.chat.completions.create({
-        model: 'gpt-4o',
+        model: MODEL,
         messages: [
           {
             role: 'user' as const,
@@ -89,7 +91,7 @@ export class OpenAIService {
       });
 
       const response = await this.openaiClient.chat.completions.create({
-        model: 'gpt-4o',
+        model: MODEL,
         messages,
         max_tokens: 1500,
         temperature: 0.7,
@@ -228,7 +230,7 @@ export class OpenAIService {
       console.log('🤖 Starting OpenAI text analysis...');
 
       const response = await this.openaiClient.chat.completions.create({
-        model: 'gpt-4o',
+        model: MODEL,
         messages: [
           {
             role: 'system' as const,
@@ -270,7 +272,7 @@ export class OpenAIService {
       Be encouraging, clear, and provide practical solutions.`;
 
       const response = await this.openaiClient.chat.completions.create({
-        model: 'gpt-4o',
+        model: MODEL,
         messages: [
           {
             role: 'system' as const,
@@ -311,7 +313,7 @@ export class OpenAIService {
       Use examples when helpful and encourage learning.`;
 
       const response = await this.openaiClient.chat.completions.create({
-        model: 'gpt-4o',
+        model: MODEL,
         messages: [
           {
             role: 'system' as const,
@@ -375,7 +377,7 @@ export class OpenAIService {
       }
 
       const response = await this.openaiClient.chat.completions.create({
-        model: 'gpt-4o',
+        model: MODEL,
         messages: [
           {
             role: 'system' as const,
