@@ -155,6 +155,8 @@ router.post("/", (req: Request, res: Response) => {
   try {
     const webhookData: LineWebhookRequest = req.body;
 
+    console.log("webhook data", webhookData);
+
     // Validate webhook data
     if (
       !webhookData ||
