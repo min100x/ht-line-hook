@@ -1,4 +1,6 @@
-import { Router, Request, Response } from "express";
+import config from '../config/config';
+
+import { Request, Response, Router } from 'express';
 
 const router: Router = Router();
 
@@ -7,88 +9,86 @@ interface HealthResponse {
   timestamp: string;
   uptime: number;
   environment: string;
+  version: string;
 }
 
 interface DetailedHealthResponse extends HealthResponse {
-  memory: NodeJS.MemoryUsage;
-  nodeVersion: string;
+  memory: {
+    used: number;
+    total: number;
+    free: number;
+    percentage: number;
+  };
+  cpu: {
+    user: number;
+    system: number;
+  };
   platform: string;
-  arch: string;
-  pid: number;
-}
-
-interface ProbeResponse {
-  status: string;
-  timestamp: string;
+  nodeVersion: string;
 }
 
 // Basic health check
-router.get("/", (_req: Request, res: Response): void => {
-  const healthResponse: HealthResponse = {
-    status: "OK",
+router.get('/', (_req: Request, res: Response): void => {
+  const response: HealthResponse = {
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env["NODE_ENV"] || "development",
+    environment: config.nodeEnv,
+    version: '1.0.0',
   };
 
-  res.json(healthResponse);
+  res.json(response);
 });
 
 // Detailed health check
-router.get("/detailed", (_req: Request, res: Response): void => {
-  const healthInfo: DetailedHealthResponse = {
-    status: "OK",
+router.get('/detailed', (_req: Request, res: Response): void => {
+  const memUsage = process.memoryUsage();
+  const totalMem = memUsage.heapTotal;
+  const usedMem = memUsage.heapUsed;
+  const freeMem = totalMem - usedMem;
+  const cpuUsage = process.cpuUsage();
+
+  const response: DetailedHealthResponse = {
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env["NODE_ENV"] || "development",
-    memory: process.memoryUsage(),
-    nodeVersion: process.version,
+    environment: config.nodeEnv,
+    version: '1.0.0',
+    memory: {
+      used: Math.round((usedMem / 1024 / 1024) * 100) / 100,
+      total: Math.round((totalMem / 1024 / 1024) * 100) / 100,
+      free: Math.round((freeMem / 1024 / 1024) * 100) / 100,
+      percentage: Math.round((usedMem / totalMem) * 100),
+    },
+    cpu: {
+      user: Math.round((cpuUsage.user / 1000) * 100) / 100, // Convert to milliseconds
+      system: Math.round((cpuUsage.system / 1000) * 100) / 100, // Convert to milliseconds
+    },
     platform: process.platform,
-    arch: process.arch,
-    pid: process.pid,
+    nodeVersion: process.version,
   };
 
-  res.json(healthInfo);
+  res.json(response);
 });
 
-// Readiness check
-router.get("/ready", (_req: Request, res: Response): void => {
-  // Add your readiness logic here (database connections, external services, etc.)
-  const isReady: boolean = true; // Replace with actual readiness check
-
-  if (isReady) {
-    const response: ProbeResponse = {
-      status: "ready",
-      timestamp: new Date().toISOString(),
-    };
-    res.json(response);
-  } else {
-    const response: ProbeResponse = {
-      status: "not ready",
-      timestamp: new Date().toISOString(),
-    };
-    res.status(503).json(response);
-  }
+// Readiness probe
+router.get('/ready', (_req: Request, res: Response): void => {
+  // Add your readiness logic here
+  // For example, check database connection, external services, etc.
+  res.status(200).json({
+    status: 'ready',
+    timestamp: new Date().toISOString(),
+  });
 });
 
-// Liveness check
-router.get("/live", (_req: Request, res: Response): void => {
+// Liveness probe
+router.get('/live', (_req: Request, res: Response): void => {
   // Add your liveness logic here
-  const isAlive: boolean = true; // Replace with actual liveness check
-
-  if (isAlive) {
-    const response: ProbeResponse = {
-      status: "alive",
-      timestamp: new Date().toISOString(),
-    };
-    res.json(response);
-  } else {
-    const response: ProbeResponse = {
-      status: "not alive",
-      timestamp: new Date().toISOString(),
-    };
-    res.status(503).json(response);
-  }
+  // For example, check if the application is responsive
+  res.status(200).json({
+    status: 'alive',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 export default router;

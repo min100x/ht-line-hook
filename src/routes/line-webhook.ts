@@ -1,20 +1,24 @@
-import { Router, Request, Response } from "express";
+import * as line from '@line/bot-sdk';
+
+import config from '../config/config';
+
+import { Request, Response, Router } from 'express';
 
 const router: Router = Router();
 
 // Line Webhook Event Types
 interface LineTextMessage {
   id: string;
-  type: "text";
+  type: 'text';
   text: string;
   quoteToken?: string;
 }
 
 interface LineImageMessage {
   id: string;
-  type: "image";
+  type: 'image';
   contentProvider?: {
-    type: "line" | "external";
+    type: 'line' | 'external';
     originalContentUrl?: string;
     previewImageUrl?: string;
   };
@@ -22,10 +26,10 @@ interface LineImageMessage {
 
 interface LineVideoMessage {
   id: string;
-  type: "video";
+  type: 'video';
   duration: number;
   contentProvider?: {
-    type: "line" | "external";
+    type: 'line' | 'external';
     originalContentUrl?: string;
     previewImageUrl?: string;
   };
@@ -33,24 +37,24 @@ interface LineVideoMessage {
 
 interface LineAudioMessage {
   id: string;
-  type: "audio";
+  type: 'audio';
   duration: number;
   contentProvider?: {
-    type: "line" | "external";
+    type: 'line' | 'external';
     originalContentUrl?: string;
   };
 }
 
 interface LineFileMessage {
   id: string;
-  type: "file";
+  type: 'file';
   fileName: string;
   fileSize: number;
 }
 
 interface LineLocationMessage {
   id: string;
-  type: "location";
+  type: 'location';
   title: string;
   address: string;
   latitude: number;
@@ -59,18 +63,18 @@ interface LineLocationMessage {
 
 interface LineStickerMessage {
   id: string;
-  type: "sticker";
+  type: 'sticker';
   packageId: string;
   stickerId: string;
   stickerResourceType:
-    | "STATIC"
-    | "ANIMATION"
-    | "SOUND"
-    | "ANIMATION_SOUND"
-    | "POPUP"
-    | "POPUP_SOUND"
-    | "CUSTOM"
-    | "MESSAGE";
+    | 'STATIC'
+    | 'ANIMATION'
+    | 'SOUND'
+    | 'ANIMATION_SOUND'
+    | 'POPUP'
+    | 'POPUP_SOUND'
+    | 'CUSTOM'
+    | 'MESSAGE';
   keywords?: string[];
 }
 
@@ -103,7 +107,7 @@ interface LineRoom {
 }
 
 interface LineSource {
-  type: "user" | "group" | "room";
+  type: 'user' | 'group' | 'room';
   userId?: string;
   groupId?: string;
   roomId?: string;
@@ -111,19 +115,19 @@ interface LineSource {
 
 interface LineEvent {
   type:
-    | "message"
-    | "follow"
-    | "unfollow"
-    | "join"
-    | "leave"
-    | "memberJoined"
-    | "memberLeft"
-    | "postback"
-    | "videoPlayComplete"
-    | "beacon"
-    | "accountLink"
-    | "things";
-  mode: "active" | "standby";
+    | 'message'
+    | 'follow'
+    | 'unfollow'
+    | 'join'
+    | 'leave'
+    | 'memberJoined'
+    | 'memberLeft'
+    | 'postback'
+    | 'videoPlayComplete'
+    | 'beacon'
+    | 'accountLink'
+    | 'things';
+  mode: 'active' | 'standby';
   timestamp: number;
   source: LineSource;
   webhookEventId: string;
@@ -150,12 +154,17 @@ interface WebhookResponse {
   eventTypes: string[];
 }
 
+// create LINE SDK client
+const client = new line.messagingApi.MessagingApiClient({
+  channelAccessToken: config.lineMessagingApi.channelAccessToken,
+});
+
 // Line webhook endpoint
-router.post("/", (req: Request, res: Response) => {
+router.post('/', (req: Request, res: Response) => {
   try {
     const webhookData: LineWebhookRequest = req.body;
 
-    console.log("webhook data", webhookData);
+    console.log('webhook data', webhookData);
 
     // Validate webhook data
     if (
@@ -165,7 +174,7 @@ router.post("/", (req: Request, res: Response) => {
     ) {
       res.status(400).json({
         success: false,
-        error: "Invalid webhook data format",
+        error: 'Invalid webhook data format',
         timestamp: new Date().toISOString(),
       });
       return;
@@ -173,7 +182,7 @@ router.post("/", (req: Request, res: Response) => {
 
     // Process webhook events
     const events = webhookData.events;
-    const eventTypes = events.map((event) => event.type);
+    const eventTypes = events.map(event => event.type);
 
     console.log(
       `📨 Received Line webhook with ${events.length} events:`,
@@ -183,22 +192,22 @@ router.post("/", (req: Request, res: Response) => {
     // Process each event
     events.forEach((event: LineEvent) => {
       switch (event.type) {
-        case "message":
+        case 'message':
           handleMessageEvent(event);
           break;
-        case "follow":
+        case 'follow':
           handleFollowEvent(event);
           break;
-        case "unfollow":
+        case 'unfollow':
           handleUnfollowEvent(event);
           break;
-        case "join":
+        case 'join':
           handleJoinEvent(event);
           break;
-        case "leave":
+        case 'leave':
           handleLeaveEvent(event);
           break;
-        case "postback":
+        case 'postback':
           handlePostbackEvent(event);
           break;
         default:
@@ -209,7 +218,7 @@ router.post("/", (req: Request, res: Response) => {
     // Send success response
     const response: WebhookResponse = {
       success: true,
-      message: "Webhook processed successfully",
+      message: 'Webhook processed successfully',
       timestamp: new Date().toISOString(),
       eventCount: events.length,
       eventTypes: eventTypes,
@@ -217,10 +226,10 @@ router.post("/", (req: Request, res: Response) => {
 
     res.status(200).json(response);
   } catch (error) {
-    console.error("❌ Error processing Line webhook:", error);
+    console.error('❌ Error processing Line webhook:', error);
     res.status(500).json({
       success: false,
-      error: "Internal server error",
+      error: 'Internal server error',
       timestamp: new Date().toISOString(),
     });
   }
@@ -228,7 +237,7 @@ router.post("/", (req: Request, res: Response) => {
 
 // Event handlers
 function handleMessageEvent(event: LineEvent): void {
-  if (event.message && event.type === "message") {
+  if (event.message && event.type === 'message') {
     const message = event.message;
     console.log(`💬 Message received:`, {
       type: message.type,
@@ -239,36 +248,56 @@ function handleMessageEvent(event: LineEvent): void {
 
     // Handle different message types
     switch (message.type) {
-      case "text":
+      case 'text':
         console.log(`📝 Text message: ${(message as LineTextMessage).text}`);
         // Add your text message processing logic here
+
+        if (event.source.userId) {
+          console.log('push message to user', event.source.userId);
+          client.pushMessage({
+            to: event.source.userId,
+            messages: [
+              {
+                type: 'text',
+                text: 'สวัสดีจ้า นักเรียน !',
+              },
+            ],
+          });
+        }
         break;
-      case "image":
-        console.log(`🖼️ Image message received`);
+      case 'image':
         // Add your image processing logic here
+        // contentProvider.type
+        // contentProvider.originalContentUrl
+        if (message.contentProvider?.type === 'line') {
+          console.log(`🖼️ Image message received from Line`);
+          // todo: get content api
+        } else if (message.contentProvider?.type === 'external') {
+          console.log(`🖼️ Image message received from external`);
+        }
         break;
-      case "video":
+      case 'video':
         console.log(`🎥 Video message received`);
         // Add your video processing logic here
         break;
-      case "audio":
+      case 'audio':
         console.log(`🎵 Audio message received`);
         // Add your audio processing logic here
         break;
-      case "file":
+      case 'file':
         console.log(
           `📁 File message: ${(message as LineFileMessage).fileName}`
         );
         // Add your file processing logic here
         break;
-      case "location":
+      case 'location':
         const locationMsg = message as LineLocationMessage;
         console.log(
           `📍 Location: ${locationMsg.title} at ${locationMsg.latitude}, ${locationMsg.longitude}`
         );
         // Add your location processing logic here
         break;
-      case "sticker":
+      case 'sticker':
         const stickerMsg = message as LineStickerMessage;
         console.log(
           `😀 Sticker: ${stickerMsg.packageId}/${stickerMsg.stickerId}`
@@ -320,13 +349,13 @@ function handlePostbackEvent(event: LineEvent): void {
 }
 
 // Health check for the webhook
-router.get("/health", (_req: Request, res: Response): void => {
+router.get('/health', (_req: Request, res: Response): void => {
   res.json({
-    status: "OK",
-    message: "Line webhook endpoint is healthy",
+    status: 'OK',
+    message: 'Line webhook endpoint is healthy',
     timestamp: new Date().toISOString(),
-    endpoint: "/line-webhook",
-    method: "POST",
+    endpoint: '/line-webhook',
+    method: 'POST',
   });
 });
 

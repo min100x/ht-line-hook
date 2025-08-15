@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Request, Response, Router } from 'express';
 
 const router: Router = Router();
 
@@ -32,14 +32,14 @@ interface ErrorResponse {
 }
 
 // Sample API endpoint
-router.get("/", (_req: Request, res: Response): void => {
+router.get('/', (_req: Request, res: Response): void => {
   const response: ApiResponse = {
-    message: "API is working!",
+    message: 'API is working!',
     endpoints: {
-      health: "/health",
-      api: "/api",
-      root: "/",
-      lineWebhook: "/line-webhook",
+      health: '/health',
+      api: '/api',
+      root: '/',
+      lineWebhook: '/line-webhook',
     },
   };
 
@@ -47,10 +47,10 @@ router.get("/", (_req: Request, res: Response): void => {
 });
 
 // Sample protected endpoint
-router.get("/protected", (_req: Request, res: Response): void => {
+router.get('/protected', (_req: Request, res: Response): void => {
   // Add authentication middleware here if needed
   const response: ProtectedResponse = {
-    message: "This is a protected endpoint",
+    message: 'This is a protected endpoint',
     timestamp: new Date().toISOString(),
   };
 
@@ -58,19 +58,19 @@ router.get("/protected", (_req: Request, res: Response): void => {
 });
 
 // Sample POST endpoint
-router.post("/data", (req: Request, res: Response): void => {
+router.post('/data', (req: Request, res: Response): void => {
   const { data }: DataRequest = req.body;
 
   if (!data) {
     const errorResponse: ErrorResponse = {
-      error: "Data is required",
+      error: 'Data is required',
     };
     res.status(400).json(errorResponse);
     return;
   }
 
   const response: DataResponse = {
-    message: "Data received successfully",
+    message: 'Data received successfully',
     receivedData: data,
     timestamp: new Date().toISOString(),
   };

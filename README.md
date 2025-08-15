@@ -13,6 +13,49 @@ A Node.js Express API application with TypeScript, comprehensive health check en
 - 🔄 Hot reload with ts-node (development)
 - 🏗️ Type-safe development with TypeScript
 - 📨 **Line Webhook Integration** - Receive and process Line messaging events
+- ✨ **Prettier + Import Ordering** - Consistent code formatting and organized imports
+
+## Code Quality & Formatting
+
+### Prettier Configuration
+
+This project uses Prettier with the `@trivago/prettier-plugin-sort-imports` plugin for consistent code formatting and organized import statements.
+
+#### Available Scripts
+
+```bash
+# Format all source files
+pnpm run format
+
+# Check formatting without making changes
+pnpm run format:check
+
+# Format all files in the project
+pnpm run format:all
+
+# Lint (check formatting)
+pnpm run lint
+```
+
+#### Import Ordering
+
+The plugin automatically organizes imports in the following order:
+
+1. **React imports** (if using React)
+2. **Third-party packages** (alphabetically)
+3. **Internal modules** (alphabetically)
+4. **Relative imports** (alphabetically)
+
+#### VS Code Integration
+
+- **Auto-format on save** is enabled
+- **Prettier** is set as the default formatter
+- **Import organization** happens automatically
+
+Install the recommended VS Code extensions for the best experience:
+
+- Prettier - Code formatter
+- TypeScript and JavaScript Language Features
 
 ## Health Check Endpoints
 
@@ -99,6 +142,14 @@ pnpm build:watch  # Watch mode for development
 pnpm clean        # Clean build artifacts
 ```
 
+### Code Quality Commands
+
+```bash
+pnpm format       # Format all source files
+pnpm format:check # Check formatting without changes
+pnpm lint         # Lint (check formatting)
+```
+
 The server will start on port 3000 (or the port specified in your environment variables).
 
 ## Environment Variables
@@ -118,6 +169,8 @@ ht-line-hooks/
 ├── src/                    # TypeScript source files
 │   ├── app.ts             # Express app configuration
 │   ├── server.ts          # Server entry point
+│   ├── client/            # Line client implementation
+│   │   └── lineClient.ts  # Line Messaging API client
 │   ├── config/
 │   │   └── config.ts      # Configuration management
 │   └── routes/
@@ -125,9 +178,12 @@ ht-line-hooks/
 │       ├── api.ts         # Main API routes
 │       └── line-webhook.ts # Line webhook routes
 ├── dist/                   # Compiled JavaScript (generated)
+├── .vscode/               # VS Code settings and extensions
 ├── tsconfig.json          # TypeScript configuration
-├── package.json           # Updated with TypeScript scripts
-└── README.md              # Updated documentation
+├── .prettierrc            # Prettier configuration
+├── .prettierignore        # Prettier ignore patterns
+├── package.json           # Dependencies and scripts
+└── README.md              # Project documentation
 ```
 
 ## Available Scripts
@@ -138,6 +194,9 @@ ht-line-hooks/
 - `pnpm build:watch` - Watch mode for TypeScript compilation
 - `pnpm clean` - Clean build artifacts
 - `pnpm test` - Run tests (to be implemented)
+- `pnpm format` - Format all source files with Prettier
+- `pnpm format:check` - Check formatting without making changes
+- `pnpm lint` - Lint (check formatting)
 
 ## TypeScript Features
 
@@ -203,11 +262,11 @@ The webhook includes placeholder functions for each event type. You can customiz
 
 ```typescript
 function handleMessageEvent(event: LineEvent): void {
-  if (event.message && event.type === "message") {
+  if (event.message && event.type === 'message') {
     const message = event.message;
 
     switch (message.type) {
-      case "text":
+      case 'text':
         // Add your text message processing logic here
         console.log(`Processing text: ${(message as LineTextMessage).text}`);
         break;
@@ -248,6 +307,8 @@ readinessProbe:
 2. **Building**: Use `pnpm build` to compile TypeScript to JavaScript
 3. **Production**: Use `pnpm start` to run the compiled JavaScript
 4. **Type Checking**: TypeScript compiler will catch errors during build
+5. **Formatting**: Use `pnpm format` to maintain consistent code style
+6. **Import Organization**: Imports are automatically organized by the Prettier plugin
 
 ## Contributing
 
@@ -255,8 +316,9 @@ readinessProbe:
 2. Create a feature branch
 3. Make your changes in TypeScript
 4. Ensure the project builds successfully (`pnpm build`)
-5. Add tests if applicable
-6. Submit a pull request
+5. Format your code (`pnpm format`)
+6. Add tests if applicable
+7. Submit a pull request
 
 ## License
 
