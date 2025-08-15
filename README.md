@@ -291,8 +291,9 @@ ht-line-hooks/
 │   │   ├── example-usage.ts # Basic Line client usage examples
 │   │   └── image-analysis-example.ts # 🤖 AI image analysis examples
 │   ├── services/          # 🤖 Service layer for business logic
-│   │   ├── openaiService.ts # OpenAI API integration and image analysis
-│   │   └── lineAIService.ts # Combined Line + OpenAI service for AI workflows
+│   │   ├── openaiService.ts # OpenAI API integration and AI analysis
+│   │   ├── lineAIService.ts # Combined Line + OpenAI service for AI workflows
+│   │   └── text-analysis-example.ts # 📝 Text analysis and problem-solving examples
 │   ├── config/
 │   │   └── config.ts      # Configuration management
 │   └── routes/
@@ -325,6 +326,10 @@ The project now follows a **clean separation of concerns** with dedicated servic
 - **Custom prompts** and system instructions
 - **Use case analysis** (accessibility, education, business, safety)
 - **Batch processing** for multiple images
+- **🤖 Text analysis** and problem-solving
+- **📚 Educational assistance** and tutoring
+- **🔧 Context-aware** problem resolution
+- **💭 Intelligent query** processing
 
 #### **`LineAIService`** - Combined Workflows
 
@@ -332,6 +337,10 @@ The project now follows a **clean separation of concerns** with dedicated servic
 - **Complete AI workflows** (analyze + reply)
 - **Error handling** and user communication
 - **Orchestrates** the entire image analysis process
+- **📝 Text message processing** with AI assistance
+- **🧠 Intelligent message handling** with keyword detection
+- **🎯 Context-specific** problem solving
+- **📚 Subject-specific** educational help
 
 ### 🤖 **AI-Powered Image Analysis with OpenAI**
 
@@ -341,6 +350,62 @@ The Line webhook now includes **automatic AI-powered image analysis** using Open
 2. **Converts to base64** for OpenAI processing
 3. **Analyzes with GPT-4 Vision** (via `OpenAIService`)
 4. **Automatically replies** to users with the analysis (via `LineAIService`)
+
+### 📝 **AI-Powered Text Analysis and Problem Solving**
+
+The system now also provides **comprehensive text analysis and problem-solving capabilities**:
+
+#### **Text Analysis Features:**
+
+- **🔍 General text analysis** with custom prompts
+- **🔧 Problem-solving** with context-aware assistance
+- **📚 Educational help** for academic questions
+- **💭 Query analysis** with response type selection
+- **🧠 Intelligent message handling** with automatic response type detection
+
+#### **Response Types:**
+
+- **`helpful`** - General assistance and guidance
+- **`educational`** - Academic explanations and tutoring
+- **`problem-solving`** - Step-by-step problem resolution
+- **`encouraging`** - Motivational support and guidance
+
+#### **Context-Aware Problem Solving:**
+
+- **Academic** - Study-related problems and questions
+- **Personal** - Personal development and life challenges
+- **Technical** - Technical issues and troubleshooting
+- **Emotional** - Emotional support and encouragement
+- **General** - General assistance and guidance
+
+### 🎯 **Smart Message Processing**
+
+The system automatically detects message intent and provides appropriate responses:
+
+```typescript
+// Automatic keyword detection for Thai language
+if (
+  message.includes('ปัญหา') ||
+  message.includes('แก้') ||
+  message.includes('ช่วย')
+) {
+  // Problem-solving response
+} else if (
+  message.includes('เรียน') ||
+  message.includes('สอน') ||
+  message.includes('อธิบาย')
+) {
+  // Educational response
+} else if (
+  message.includes('เหนื่อย') ||
+  message.includes('ท้อ') ||
+  message.includes('กำลังใจ')
+) {
+  // Encouraging response
+} else {
+  // General helpful response
+}
+```
 
 #### **Service Usage Examples**
 
@@ -354,6 +419,23 @@ await lineAIService.analyzeAndReplyToImage(
   userId,
   'Please describe what you see in this image in detail.'
 );
+
+// Text analysis and problem solving
+await lineAIService.handleMessageIntelligently(textMessage, userId);
+
+// Specific problem solving
+await lineAIService.solveProblemAndReply(problemText, userId, 'academic');
+
+// Educational assistance
+await lineAIService.provideEducationalHelpAndReply(
+  question,
+  userId,
+  'math',
+  'high-school'
+);
+
+// Context-specific responses
+await lineAIService.analyzeQueryAndReply(query, userId, 'encouraging');
 
 // Using individual services for custom workflows
 const lineClient = lineAIService.getLineClient();
@@ -373,6 +455,33 @@ const analysis = await openaiService.analyzeImage(
 
 // Send reply
 await lineClient.sendMessage(userId, analysis);
+```
+
+#### **Text Analysis Examples**
+
+```typescript
+// Basic text analysis
+const analysis = await openaiService.analyzeText(
+  userMessage,
+  'Please help analyze this text and provide helpful insights.'
+);
+
+// Problem solving with context
+const solution = await openaiService.solveProblem(
+  problemText,
+  'academic',
+  'You are an expert math teacher helping students solve problems step by step.'
+);
+
+// Educational assistance
+const help = await openaiService.provideEducationalHelp(
+  question,
+  'mathematics',
+  'high-school'
+);
+
+// Query analysis with specific response type
+const response = await openaiService.analyzeQuery(userQuery, 'problem-solving');
 ```
 
 ## Available Scripts

@@ -247,29 +247,15 @@ async function handleMessageEvent(event: LineEvent): Promise<void> {
       case 'text':
         const textMessage = (message as LineTextMessage).text;
         console.log(`📝 Text message: ${textMessage}`);
-        // Add your text message processing logic here
 
         if (event.source.userId) {
-          // const completion = await openaiClient.chat.completions.create({
-          //   model: 'gpt-4o-mini',
-          //   messages: [
-          //     { role: 'developer', content: 'You are a helpful assistant.' },
-          //     {
-          //       role: 'user',
-          //       content: (message as LineTextMessage).text,
-          //     },
-          //   ],
-          // });
-          // console.log(completion.choices[0]?.message.content);
-          // client.pushMessage({
-          //   to: event.source.userId,
-          //   messages: [
-          //     {
-          //       type: 'text',
-          //       text: 'สวัสดีจ้า นักเรียน !',
-          //     },
-          //   ],
-          // });
+          console.log('🤖 Starting OpenAI text analysis...');
+
+          // Use intelligent message handling for text messages
+          await lineAIService.handleMessageIntelligently(
+            textMessage,
+            event.source.userId
+          );
         }
         break;
       case 'image':

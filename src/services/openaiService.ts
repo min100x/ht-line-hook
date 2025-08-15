@@ -218,6 +218,188 @@ export class OpenAIService {
   getClient(): OpenAI {
     return this.openaiClient;
   }
+
+  // Analyze text and provide solutions
+  async analyzeText(
+    text: string,
+    prompt: string = 'ครูเพ็ญศรวยช่วยแก้ปัญหานี้ให้กับนักเรียนด้วยจ้า'
+  ): Promise<string> {
+    try {
+      console.log('🤖 Starting OpenAI text analysis...');
+
+      const response = await this.openaiClient.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system' as const,
+            content: prompt,
+          },
+          {
+            role: 'user' as const,
+            content: text,
+          },
+        ],
+        max_tokens: 1000,
+        temperature: 0.7,
+      });
+
+      const analysis =
+        response.choices[0]?.message?.content || 'ครูเพ็ญศรวยสมองแตกแล้วจ้า';
+      console.log('✅ OpenAI text analysis completed');
+
+      return analysis;
+    } catch (error) {
+      console.error('Error analyzing text with OpenAI:', error);
+      throw new Error(`Failed to analyze text with OpenAI: ${error}`);
+    }
+  }
+
+  // Solve problems based on text input
+  async solveProblem(
+    problemText: string,
+    context: string = 'general',
+    systemPrompt?: string
+  ): Promise<string> {
+    try {
+      console.log(`🔧 Starting problem solving for ${context} context...`);
+
+      const defaultSystemPrompt =
+        systemPrompt ||
+        `You are ครูเพ็ญศรวย, a helpful and knowledgeable teacher who specializes in ${context} problems. 
+      You help students understand and solve their problems step by step. 
+      Be encouraging, clear, and provide practical solutions.`;
+
+      const response = await this.openaiClient.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system' as const,
+            content: defaultSystemPrompt,
+          },
+          {
+            role: 'user' as const,
+            content: `นักเรียนมีปัญหานี้: "${problemText}"\n\nช่วยแก้ปัญหานี้ให้กับนักเรียนด้วยจ้า`,
+          },
+        ],
+        max_tokens: 1500,
+        temperature: 0.7,
+      });
+
+      const solution =
+        response.choices[0]?.message?.content || 'ครูเพ็ญศรวยสมองแตกแล้วจ้า';
+      console.log('✅ Problem solving completed');
+
+      return solution;
+    } catch (error) {
+      console.error('Error solving problem with OpenAI:', error);
+      throw new Error(`Failed to solve problem with OpenAI: ${error}`);
+    }
+  }
+
+  // Provide educational assistance
+  async provideEducationalHelp(
+    question: string,
+    subject: string = 'general',
+    gradeLevel?: string
+  ): Promise<string> {
+    try {
+      console.log(`📚 Providing educational help for ${subject}...`);
+
+      const gradeContext = gradeLevel ? ` for ${gradeLevel} level` : '';
+      const systemPrompt = `You are ครูเพ็ญศรวย, an expert ${subject} teacher${gradeContext}. 
+      You help students understand concepts clearly and provide step-by-step explanations. 
+      Use examples when helpful and encourage learning.`;
+
+      const response = await this.openaiClient.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system' as const,
+            content: systemPrompt,
+          },
+          {
+            role: 'user' as const,
+            content: `นักเรียนมีคำถามเกี่ยวกับ ${subject}: "${question}"\n\nช่วยอธิบายให้เข้าใจง่ายๆ จ้า`,
+          },
+        ],
+        max_tokens: 1500,
+        temperature: 0.7,
+      });
+
+      const help =
+        response.choices[0]?.message?.content || 'ครูเพ็ญศรวยสมองแตกแล้วจ้า';
+      console.log('✅ Educational help provided');
+
+      return help;
+    } catch (error) {
+      console.error('Error providing educational help:', error);
+      throw new Error(`Failed to provide educational help: ${error}`);
+    }
+  }
+
+  // Analyze and respond to general queries
+  async analyzeQuery(
+    query: string,
+    responseType:
+      | 'helpful'
+      | 'educational'
+      | 'problem-solving'
+      | 'encouraging' = 'helpful'
+  ): Promise<string> {
+    try {
+      console.log(`💭 Analyzing query for ${responseType} response...`);
+
+      let systemPrompt: string;
+      let userPrompt: string;
+
+      switch (responseType) {
+        case 'educational':
+          systemPrompt =
+            'You are ครูเพ็ญศรวย, a knowledgeable and patient teacher. Provide educational insights and explanations.';
+          userPrompt = `นักเรียนถามว่า: "${query}"\n\nช่วยอธิบายให้เข้าใจง่ายๆ จ้า`;
+          break;
+        case 'problem-solving':
+          systemPrompt =
+            'You are ครูเพ็ญศรวย, a problem-solving expert. Help students work through their challenges step by step.';
+          userPrompt = `นักเรียนมีปัญหานี้: "${query}"\n\nช่วยแก้ปัญหานี้ให้กับนักเรียนด้วยจ้า`;
+          break;
+        case 'encouraging':
+          systemPrompt =
+            'You are ครูเพ็ญศรวย, a supportive and encouraging teacher. Provide motivation and positive guidance.';
+          userPrompt = `นักเรียนพูดว่า: "${query}"\n\nให้กำลังใจและคำแนะนำที่เป็นประโยชน์จ้า`;
+          break;
+        default:
+          systemPrompt =
+            'You are ครูเพ็ญศรวย, a helpful and knowledgeable teacher. Provide useful information and guidance.';
+          userPrompt = `นักเรียนถามว่า: "${query}"\n\nช่วยตอบคำถามนี้ให้กับนักเรียนด้วยจ้า`;
+      }
+
+      const response = await this.openaiClient.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system' as const,
+            content: systemPrompt,
+          },
+          {
+            role: 'user' as const,
+            content: userPrompt,
+          },
+        ],
+        max_tokens: 1200,
+        temperature: 0.7,
+      });
+
+      const analysis =
+        response.choices[0]?.message?.content || 'ครูเพ็ญศรวยสมองแตกแล้วจ้า';
+      console.log(`✅ ${responseType} query analysis completed`);
+
+      return analysis;
+    } catch (error) {
+      console.error('Error analyzing query with OpenAI:', error);
+      throw new Error(`Failed to analyze query with OpenAI: ${error}`);
+    }
+  }
 }
 
 export default OpenAIService;
